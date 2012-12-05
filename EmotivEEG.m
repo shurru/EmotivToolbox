@@ -45,6 +45,7 @@ classdef EmotivEEG < handle
         dataRowCount
         hData % handles (pointer) to the data stored in library
         DataChannels
+        DataChannelsNames
         
         % Data channels
         EE_DataChannels_enum = struct('ED_COUNTER',     0,  ...
@@ -175,8 +176,6 @@ classdef EmotivEEG < handle
                              'EE_ExpressivEvent',       512,...
                              'EE_InternalStateChanged', 1024,...
                              'EE_AllEvent',             2032);
-
-        DataChannelsNames = fieldnames(EE_DataChannels_enum);
     end
     
     properties (Access = protected)
@@ -185,14 +184,19 @@ classdef EmotivEEG < handle
     end
     
     methods
-        function self = EmotivEEG()
-            % THIS MAY BE REDUNDANT
+        function self = EmotivEEG(libraryPath)
+            self.DataChannelsNames = fieldnames(self.EE_DataChannels_enum);
             self.DataChannels = self.EE_DataChannels_enum;
             self.channelCount = length(self.DataChannelsNames);
+            
+            if nargin < 1
+                libraryPath = '.\';
+            end
 
             % Check to see if library was already loaded
             if ~libisloaded('edk')    
-                [notfound, warnings] = loadlibrary('edk.dll','edk.h');
+                [~] = loadlibrary(strcat(libraryPath, 'edk.dll'), ...
+                                  strcat(libraryPath, 'edk.h'));
                 disp('EDK library loaded');
             else
                 disp('EDK library already loaded');
